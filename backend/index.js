@@ -5,6 +5,7 @@ import express from "express"; // Importamos el framework Express
 import environments from "./src/api/config/environments.js"; // Traigo la info de la variables de entorno
 import connection from "./src/api/database/db.js"; // Importo la conexion a la BBDD
 import cors from "cors"; // Importamos el middleware CORS
+import sequelize from "./src/api/database/sequelize.js";
 
 
 /*===============
@@ -55,9 +56,9 @@ app.get("/api/products/:id", async (req, res) => {
     // Accedo al valor numerico del parametro de la url
     const id = req.params.id;  
       
-    const sql = `SELECT * FROM products WHERE products.id = ${id}`;
+    const sql = "SELECT * FROM products WHERE products.id = ?";
     
-    const [rows] = await connection.query(sql);
+    const [rows] = await connection.query(sql, [id]);
 
     res.status(200).json({
         payload: rows
@@ -97,7 +98,12 @@ app.delete("/api/products/:id", async (req, res) => {
     });
 });
 
-
+try {
+    await sequelize.authenticate();
+    console.log("Conexion a MySQL OK");
+} catch (error) {
+    console.error("No se pudo conectar a MySQL:", error.message);
+}
 
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`)
